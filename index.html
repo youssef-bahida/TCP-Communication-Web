@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCP Client Workspace</title>
+
+<style>
+:root {
+    --bg: #0b1120;
+    --panel: #151f32;
+    --panel2: #1b2940;
+    --border: #2b3a52;
+    --text: #edf2fa;
+    --muted: #91a0b8;
+    --blue: #4385f5;
+    --green: #22c58b;
+    --red: #f06464;
+}
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+
+header {
+    padding: 22px 5%;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.brand { font-size: 21px; font-weight: bold; }
+.brand span { color: var(--blue); }
+.header-status { color: var(--muted); font-size: 13px; }
+
+main { max-width: 1150px; margin: auto; padding: 30px 20px; }
+
+.intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+h1 { font-size: 28px; margin: 0 0 8px; }
+p { color: var(--muted); margin: 0; }
+
+button {
+    border: 0;
+    border-radius: 8px;
+    padding: 11px 16px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: .15s;
+}
+button:hover { filter: brightness(1.12); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+.primary { background: var(--blue); }
+.success { background: #13865f; }
+.danger { background: #a83b49; }
+.neutral { background: #34445e; }
+
+.server {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.server-info { display: flex; align-items: center; gap: 12px; }
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+}
+.dot.running { background: var(--green); }
+
+.server-label { font-weight: bold; }
+.server-state { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.section-heading h2 { font-size: 19px; margin: 0; }
+
+.client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.client {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.client-head {
+    background: var(--panel2);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.client-title { font-weight: bold; }
+.client-state { color: var(--muted); font-size: 12px; margin-top: 5px; }
+
+.client-body { padding: 16px; }
+
+.client-actions {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 17px;
+}
+
+.client-actions button { flex: 1; padding: 10px 8px; }
+
+label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    color: white;
+    background: #0d1728;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+input:focus { border-color: var(--blue); }
+
+.send-button { width: 100%; }
+
+.response {
+    background: #0d1728;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 15px;
+    min-height: 55px;
+    overflow-wrap: anywhere;
+}
+.response-label { color: var(--muted); font-size: 12px; }
+.response-value { color: var(--green); font-size: 20px; font-weight: bold; margin-top: 7px; }
+
+.remove {
+    background: transparent;
+    color: var(--muted);
+    padding: 5px 8px;
+}
+.remove:hover { color: var(--red); }
+
+.empty {
+    text-align: center;
+    padding: 45px 15px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+}
+
+footer {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+@media(max-width:600px) {
+    header { padding: 17px; }
+    main { padding: 22px 14px; }
+    h1 { font-size: 23px; }
+    .server { align-items: flex-start; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="brand">TCP <span>Workspace</span></div>
+    <div class="header-status" id="connectionStatus">Connecting...</div>
+</header>
+
+<main>
+
+    <div class="intro">
+        <div>
+            <h1>Client Management</h1>
+            <p>Create and manage multiple TCP client instances independently.</p>
+        </div>
+        <button class="primary" onclick="createClient()">+ Create Client</button>
+    </div>
+
+    <section class="server">
+        <div class="server-info">
+            <div class="dot" id="serverDot"></div>
+            <div>
+                <div class="server-label">TCP Server</div>
+                <div class="server-state" id="serverState">Stopped</div>
+            </div>
+        </div>
+
+        <div>
+            <button class="success" id="startButton" onclick="serverCommand('START_SERVER')">
+                Start Server
+            </button>
+            <button class="danger" id="stopButton" onclick="serverCommand('STOP_SERVER')">
+                Stop Server
+            </button>
+        </div>
+    </section>
+
+    <div class="section-heading">
+        <h2>Client Instances</h2>
+        <span id="clientCount" style="color:var(--muted);font-size:13px">0 clients</span>
+    </div>
+
+    <section class="client-grid" id="clientGrid">
+        <div class="empty" id="emptyMessage">
+            No clients created yet.<br><br>
+            Click <b>+ Create Client</b> to create your first instance.
+        </div>
+    </section>
+
+</main>
+
+<footer>Java 17 · Spring Boot · TCP Sockets · WebSocket</footer>
+
+<script>
+// For local testing:
+const BACKEND_URL = "http://localhost:8080";
+
+// If you configure APP_ACCESS_CODE on your backend, enter it here.
+// Do not publish a shared secret in a public frontend.
+const ACCESS_CODE = "";
+
+let ws = null;
+let clientNumber = 0;
+const clients = new Map();
+
+function connectBackend() {
+    const url = new URL(BACKEND_URL);
+    const protocol = url.protocol === "https:" ? "wss:" : "ws:";
+
+    ws = new WebSocket(protocol + "//" + url.host + "/ws");
+
+    ws.onopen = () => {
+        document.getElementById("connectionStatus").textContent = "● Connected";
+        document.getElementById("connectionStatus").style.color = "#22c58b";
+    };
+
+    ws.onmessage = event => {
+        const data = JSON.parse(event.data);
+        handleMessage(data);
+    };
+
+    ws.onclose = () => {
+        document.getElementById("connectionStatus").textContent = "● Reconnecting...";
+        document.getElementById("connectionStatus").style.color = "#f06464";
+
+        setTimeout(connectBackend, 3000);
+    };
+
+    ws.onerror = () => ws.close();
+}
+
+function sendCommand(type, clientId = null, extra = {}) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert("The application is connecting to the server. Please wait.");
+        return;
+    }
+
+    ws.send(JSON.stringify({
+        type,
+        clientId,
+        accessCode: ACCESS_CODE,
+        ...extra
+    }));
+}
+
+function serverCommand(type) {
+    sendCommand(type);
+}
+
+function createClient() {
+    clientNumber++;
+
+    const id = "client-" + Date.now() + "-" + clientNumber;
+
+    clients.set(id, {
+        name: "Client " + clientNumber,
+        connected: false
+    });
+
+    const card = document.createElement("article");
+    card.className = "client";
+    card.id = id;
+
+    card.innerHTML = `
+        <div class="client-head">
+            <div>
+                <div class="client-title">Client ${clientNumber}</div>
+                <div class="client-state" id="${id}-state">Disconnected</div>
+            </div>
+            <button class="remove" title="Remove client"
+                    onclick="removeClient('${id}')">✕</button>
+        </div>
+
+        <div class="client-body">
+            <div class="client-actions">
+                <button class="success" onclick="connectClient('${id}')">Connect</button>
+                <button class="danger" onclick="disconnectClient('${id}')">Disconnect</button>
+            </div>
+
+            <label>Message / Number</label>
+            <input id="${id}-input" type="number" step="any"
+                   placeholder="Enter a number" onkeydown="if(event.key==='Enter') sendNumber('${id}')">
+
+            <button class="primary send-button" onclick="sendNumber('${id}')">
+                Send
+            </button>
+
+            <div class="response">
+                <div class="response-label">Server response</div>
+                <div class="response-value" id="${id}-response">—</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("clientGrid").appendChild(card);
+    updateClientCount();
+    updateEmptyMessage();
+}
+
+function connectClient(id) {
+    sendCommand("CONNECT", id);
+}
+
+function disconnectClient(id) {
+    sendCommand("DISCONNECT", id);
+}
+
+function sendNumber(id) {
+    const input = document.getElementById(id + "-input");
+    const value = input.value;
+
+    if (value.trim() === "") {
+        alert("Please enter a number.");
+        return;
+    }
+
+    sendCommand("SEND", id, { value });
+}
+
+function removeClient(id) {
+    const client = clients.get(id);
+    if (!client) return;
+
+    if (client.connected) {
+        sendCommand("DISCONNECT", id);
+    }
+
+    clients.delete(id);
+
+    const card = document.getElementById(id);
+    if (card) card.remove();
+
+    updateClientCount();
+    updateEmptyMessage();
+}
+
+function handleMessage(data) {
+    const id = data.clientId;
+    const client = id ? clients.get(id) : null;
+
+    switch (data.type) {
+        case "SERVER_STARTED":
+            document.getElementById("serverState").textContent = "Running";
+            document.getElementById("serverDot").classList.add("running");
+            break;
+
+        case "SERVER_STOPPED":
+            document.getElementById("serverState").textContent = "Stopped";
+            document.getElementById("serverDot").classList.remove("running");
+            clients.forEach((client, clientId) => {
+                client.connected = false;
+                setClientState(clientId, "Disconnected");
+            });
+            break;
+
+        case "CLIENT_CONNECTED":
+            if (client) {
+                client.connected = true;
+                setClientState(id, "Connected");
+            }
+            break;
+
+        case "CLIENT_DISCONNECTED":
+            if (client) {
+                client.connected = false;
+                setClientState(id, "Disconnected");
+            }
+            break;
+
+        case "TCP_MESSAGE":
+            if (client) {
+                const response = data.message;
+                const result = response.startsWith("RESULT:")
+                    ? response.substring(7)
+                    : response;
+
+                document.getElementById(id + "-response").textContent = result;
+            }
+            break;
+
+        case "ERROR":
+            alert(data.message);
+            break;
+    }
+}
+
+function setClientState(id, state) {
+    const element = document.getElementById(id + "-state");
+    if (element) element.textContent = state;
+}
+
+function updateClientCount() {
+    document.getElementById("clientCount").textContent =
+        clients.size + (clients.size === 1 ? " client" : " clients");
+}
+
+function updateEmptyMessage() {
+    const empty = document.getElementById("emptyMessage");
+    if (empty) empty.style.display = clients.size === 0 ? "block" : "none";
+}
+
+connectBackend();
+</script>
+
+</body>
+</html>
